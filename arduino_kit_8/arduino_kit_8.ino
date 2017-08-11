@@ -1,13 +1,16 @@
 const int switchPin = 8;
+const int piezoPin = 9;
 
 unsigned long previousTime = 0;
 
 int switchState = 0;
 int prevSwitchState = 0;
 
+int direction = 0; // 0 = left, 1 = right
+
 int led = 2;
 
-long interval = 6000; // 6 seconds
+long interval = 100; // millis
 
 void setup() {
 
@@ -18,6 +21,7 @@ void setup() {
   }
 
   pinMode(switchPin, INPUT);
+  pinMode(piezoPin, OUTPUT);
 }
 
 void loop() {
@@ -30,9 +34,25 @@ void loop() {
     Serial.println(led);
 
     digitalWrite(led, HIGH);
-    led++;
+    tone(piezoPin, 1000, 10); // beep when turning on another LED
+    
+    if (direction == 0) {
+      led++;
+    } else {
+      led--;
+    }
 
-    if (led == 7) {
+    if (led == 8 || led == 1) {
+      direction = ~direction;
+      interval += interval;
+      delay(interval);
+      turnOffLeds();
+
+      if (led == 8) {
+        led = 7;
+      } else {
+        led = 2;
+      }
     }
   }
 
@@ -43,13 +63,17 @@ void loop() {
     Serial.print("switchState: ");
     Serial.println(switchState);
 
-    for (int x = 2; x < 8; x++) {
-      digitalWrite(x, LOW);
-    }
+    turnOffLeds();
 
     led = 2;
     previousTime = currentTime;
   }
 
   prevSwitchState = switchState;
+}
+
+void turnOffLeds() {
+  for (int x = 2; x < 8; x++) {
+    digitalWrite(x, LOW);
+  }
 }
